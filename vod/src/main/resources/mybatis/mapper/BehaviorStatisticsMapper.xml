@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://www.mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="BehaviorStatisticsMapper">
+    <!-- 分页显示歌曲的点击量，下载量 -->
+    <select id="listPageSongStatistics" parameterType="page" resultType="pd">
+	    select s.user_id userId,u.mac_address macAddress,
+		u.serial_number serialNum,sum(s.play_num) playNum,
+		sum(s.down_num) downNum,
+		(select count(collect_date) collectNum from dbsongstatics ss where collect_date!='' and ss.user_id=s.user_id)
+		collectNum
+		 from dbsongstatics s,dbuser u
+		where s.user_id=u.user_id
+		group by s.user_id
+    </select>
+    
+    <!-- 根据客户统计表的主键获取那个用户对那首歌的点击量，下载量 -->
+    <select id="findSongStatisticsById" parameterType="page" resultType="pd">
+    	select u.mac_address macAddress,u.serial_number serialNum,
+		d.song_id songId,s.song_name songName,sum(play_num) playNum,sum(down_num) downNum,
+		(select count(collect_date) from dbsongstatics ds where collect_date!='' and ds.user_id=d.user_id and ds.song_id=s.id) collectNum
+		from dbsongstatics d,dbsongs s,dbuser u
+		where d.user_id=u.user_id and d.song_id=s.id and d.user_id=5
+		group by d.user_id,d.song_id
+    </select>
+    
+    <!--分页关注歌星列表 -->
+    <select id="listPageAttentionSinger" parameterType="page" resultType="pd">
+    	select u.mac_address,u.serial_number,s.id,s.singer_name,a.attention_time from dbattention a,dbuser u,dbsinger s
+		where a.user_id=u.user_id and a.singer_id=s.id
+		<if test="pd.mac_address!=null and pd.mac_address!=''">
+			and u.mac_address like '%${pd.mac_address}%'
+		</if>
+		<if test="pd.singer_name!=null and pd.singer_name!=''">
+			and s.singer_name like '%${pd.singer_name}%'
+		</if>
+    </select>
+    
+     <!-- 自动补全 -->
+    <select id="autoAmacAddress" parameterType="pd" resultType="string">
+        select distinct u.mac_address from dbattention a, dbuser u
+		where a.user_id=u.user_id
+		and u.mac_address like '%${mac_address}%'
+       	limit 0,15
+    </select>
+    
+    <!-- 自动补全 -->
+    <select id="autoASingerName" parameterType="pd" resultType="string">
+      select distinct s.singer_name from dbattention a,dbsinger s
+		where a.singer_id=s.id
+			and s.singer_name like '%${singer_name}%'
+       	limit 0,15
+    </select>
+</mapper>

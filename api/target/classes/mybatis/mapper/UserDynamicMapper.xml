@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://www.mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="UserDynamicMapper">
+
+	<!-- 获取动态信息 -->
+	<select id="queryDynamic" resultType="pd">
+		select u.id userId,u.username userName,u.
+		from dbuserdynamic d left join dbuseronline u on d.user_id=u.id;
+	</select>
+
+</mapper>

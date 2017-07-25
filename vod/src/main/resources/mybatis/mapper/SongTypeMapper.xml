@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://www.mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="SongTypeMapper">
+	<!-- 分页获取歌曲类型信息 -->
+	<select id="listPageSongType" parameterType="page" resultType="pd">
+		select id,type,status from dbtype order by status
+	</select>
+	
+	<!-- 获取所有歌曲类型信息 -->
+	<select id="allSongType" parameterType="pd" resultType="pd">
+		select id,type from dbtype where status='1'
+	</select>
+	
+	<!-- 根据编号获取单个歌曲类型 -->
+	<select id="singleSongType" parameterType="string" resultType="pd">
+		select id,type from dbtype where id=#{typeId}
+	</select>
+	<!-- 增加歌曲类型 -->
+	<insert id="addSongType" parameterType="pd">
+		insert into dbtype(type)
+		values(#{type})
+	</insert>
+	
+	<!-- 修改歌曲类型 -->
+	<update id="updateSongType" parameterType="pd">
+		update dbtype
+		<set>
+			<if test="type!=null and type!=''">
+				type=#{type},
+			</if>
+			<if test="status!=null and status!=''">
+				status=#{status},
+			</if>
+		</set>
+		where id=#{typeId}
+	</update>
+</mapper>

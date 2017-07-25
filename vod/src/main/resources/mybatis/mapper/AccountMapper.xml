@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://www.mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="AccountMapper">
+    <select id="listPageAccount" parameterType="page" resultType="pd">
+        select id accountNo, user_account account,role_name user_role,
+        last_login_time lastLoginTime ,last_login_ip lastLoginIp
+        from dbaccount d,dbrole r where d.user_role=r.role_id
+       	<if test="pd.account_name!=null and pd.account_name!=''">
+       		and user_account like '%${pd.account_name}%'
+       	</if>
+    </select>
+    
+    <!-- 自动补全 -->
+    <select id="autoAccountNo" parameterType="pd" resultType="string">
+        select distinct user_account  from dbaccount
+       		where user_account like '%${account}%'
+       	limit 0,10
+    </select>
+    
+    <!-- 账户登陆 -->
+    <select id="accountLogin" parameterType="pd" resultType="pd">
+        select id accountNo, user_account account,last_login_time lastLoginTime 
+        ,last_login_ip lastLoginIp,user_role userRole
+        from dbaccount where user_account=#{account} and user_password=#{password}
+    </select>
+    
+    <!-- 获取单个账户信息 同时作为修改账户密码的依据-->
+    <select id="findSingleAccount" parameterType="string" resultType="pd">
+    	select id accountNo, user_account account,user_password password,r.role_id user_role
+    	from dbaccount d,dbrole r where d.user_role=r.role_id
+    	and id=#{account}
+    </select>
+    
+    
+    <!-- 分配账户 -->
+    <insert id="addAccount" parameterType="pd">
+        insert into dbaccount(user_account,user_password,user_role)
+        values(#{account},#{password},#{user_role})
+    </insert>
+    
+    <!-- 修改账户 -->
+    <update id="modifyAccount" parameterType="pd">
+        update dbaccount
+        <set>
+        	<if test="account!=null and account!=''">
+                user_account=#{account},
+            </if>
+            <if test="password!=null and password!=''">
+                user_password=#{password},
+            </if>
+            <if test="lastLoginTime!=null and lastLoginTime!=''">
+                last_login_time=#{lastLoginTime},
+            </if>
+             <if test="lastLoginIp!=null and lastLoginIp!=''">
+                last_login_ip=#{lastLoginIp},
+            </if>
+            <if test="user_role!=null and user_role!=''">
+            	user_role=#{user_role},
+            </if>
+        </set>
+        <where>
+            id=#{accountNo}
+        </where>
+    </update>
+    <!-- 删除账户,包含单个删除和批量删除 -->
+    <delete id="delAccount" parameterType="string">
+        delete from dbaccount where id in
+        <foreach item="accountNo" index="index" collection="array" open="(" separator="," close=")">
+           #{accountNo}
+		</foreach>
+    </delete>
+    
+    <!-- 根据勾选给账户分配权限 -->
+    <insert id="givePrivilege" parameterType="pd">
+    	insert into dbprivilege(account_id,menu_id) values
+		<foreach collection="menuNo" item="item" index="index" separator="," >  
+        	(#{accountNo},#{item})  
+   		</foreach> 
+    </insert>
+    
+    <!-- 根据勾选来删除权限-->
+    <delete id="delPrivilege" parameterType="pd">
+    	delete from dbprivilege where 
+    	<foreach collection="menuNo" item="item" index="index" separator="or" >  
+        	(account_id=#{accountNo} and menu_id=#{item})
+   		</foreach> 
+    </delete>
+    
+    <!-- 根据一组用户角色编号来获取数量 -->
+    <select id="findCountByRole" parameterType="string" resultType="int">
+    	select count(id) from dbaccount 
+    	where user_role in 
+    	<foreach item="role_id" index="index" collection="array" open="(" separator="," close=")">
+           #{role_id}
+		</foreach>
+    </select>
+</mapper>

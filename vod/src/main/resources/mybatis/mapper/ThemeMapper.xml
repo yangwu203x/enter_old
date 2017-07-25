@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://www.mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ThemeMapper">
+	<!-- 分页获取歌曲主题信息 -->
+	<select id="listPageTheme" parameterType="page" resultType="pd">
+		select id,theme,status from dbtheme order by status
+	</select>
+	<!-- 获取所有主题 -->
+	<select id="allTheme" parameterType="page" resultType="pd">
+		select id,theme from dbtheme where status='1'
+	</select>
+	<!-- 根据主题编号获取主题 -->
+	<select id="findThemeById" parameterType="string" resultType="pd">
+		select theme from dbtheme where id=#{themeId}
+	</select>
+	<!-- 增加主题 -->
+	<insert id="addTheme" parameterType="pd">
+		insert into dbtheme(theme)
+		values(#{theme})
+	</insert>
+	
+	<!-- 修改歌曲主题 -->
+	<update id="updateTheme" parameterType="pd">
+		update dbtheme
+		<set>
+			<if test="theme!=null and theme!=''">
+				theme=#{theme},
+			</if>
+			<if test="status!=null and status!=''">
+				status=#{status},
+			</if>
+		</set>
+		where id=#{themeId}
+	</update>
+</mapper>

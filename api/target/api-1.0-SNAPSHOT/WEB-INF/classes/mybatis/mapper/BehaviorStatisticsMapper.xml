@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://www.mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="BehaviorStatisticsMapper">
+
+	<!-- 根据mac地址和序列号获取用户的编号 -->
+	<select id="findUserIdByFlag" parameterType="pd" resultType="string">
+		select user_id userId from dbuser where mac_address=#{macAddress} 
+		and serial_number=#{serialNum}
+	</select>
+	
+	<!-- 同步歌曲点播，下载相关数据至服务端 -->
+	<insert id="syncDataFromClient" parameterType="pd">
+		insert into dbsongstatics(user_id,song_id,play_num,play_date,down_num,down_date)
+		values
+		<foreach collection="list" item="data" index="index" separator="," >  
+        	(#{data.userId},#{data.songId},#{data.playNum},#{data.playDate},#{data.downNum},#{data.downDate})
+   		</foreach>
+	</insert>
+	
+	<!-- 同步歌曲收藏-->
+	<select id="syncDataFromServer" parameterType="Integer" resultType="pd">
+		select user_id userId,song_id songId,collect_date collectDate 
+		from dbsongstatics where user_id=#{userId} and collect_date!=''
+	</select>
+	
+	<!-- 同步歌曲收藏-->
+	<select id="syncHotKey" parameterType="Integer" resultType="pd">
+		select content from dbhotsearch limit 20
+	</select>
+	
+	<!-- 只增加收藏的数据 -->
+	<insert id="addCollect" parameterType="pd">
+		insert into dbsongstatics(user_id,song_id,collect_date) values
+		<foreach collection="list" item="data" index="index" separator="," >  
+        	(#{data.userId},#{data.songId},#{data.collectDate})
+   		</foreach>
+	</insert>
+	
+	<!--删除取消收藏的数据-->
+	<delete id="cancelCollect" parameterType="pd">
+		delete from dbsongstatics where collect_date!='' and song_id=#{songId}  and user_id =#{userId}
+	</delete>
+	
+	<!-- 只增加收藏的数据 -->
+	<insert id="addAppCollect" parameterType="pd">
+		insert into dbuserfavorite(user_id,song_id,collect_date) values
+		<foreach collection="list" item="data" index="index" separator="," >  
+        	(#{data.userId},#{data.songId},#{data.collectDate})
+   		</foreach>
+	</insert>
+	
+	<!--删除取消收藏的数据-->
+	<delete id="cancelAppCollect" parameterType="pd">
+		delete from dbuserfavorite where collect_date!='' and song_id=#{songId}  and user_id =#{userId}
+	</delete>
+	
+	<!-- 同步歌星关注-->
+	<select id="syncAttentionFromServer" parameterType="Integer" resultType="pd">
+		select user_id userId,singer_id singerId,attention_time attentionTime 
+		from dbattention where user_id=#{userId}
+	</select>
+   	
+   	<!-- 批量新增关注歌星数据的同步 -->
+    <insert id="singerAttentionStatistics" parameterType="pd">
+	    insert into dbattention(user_id,singer_id,attention_time) values
+		<foreach collection="list" item="attention" index="index" separator="," >  
+        	(#{attention.userId},#{attention.singerId},#{attention.attentionTime})
+   		</foreach> 
+   	</insert>
+   	
+   	<!-- 取消关注 ,可根据条件同时删除多条记录-->
+   	<delete id="cancelAttention" parameterType="pd">
+   		 delete from dbattention where
+	    <foreach collection="list" item="attention" index="index" separator="or">  
+	       (
+	       		user_id=#{attention.userId} and singer_id=#{attention.singerId}
+	       )
+	    </foreach> 
+   	</delete>
+</mapper>

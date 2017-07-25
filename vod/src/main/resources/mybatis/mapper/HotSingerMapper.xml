@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://www.mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="HotSingerMapper">
+	<!-- 分页获取热门歌曲消息 -->
+	<select id="listPageHotSinger" parameterType="page" resultType="pd">
+		select s.id hotSingerId,s.singer_name singerName,s.header_path headerPath,h.rank rank,
+		h.id hotId  from dbhotsinger h,dbsinger s
+		where h.hot_id=s.id
+		<if test="pd.singerId!=null and pd.singerId!=''">
+			and s.id like '%${pd.singerId}%'
+		</if>
+		<if test="pd.singerName!=null and pd.singerName!=''">
+			and s.singer_name like '%${pd.singerName}%'
+		</if>
+	</select>
+	<!-- 获取单个热门歌曲数据 -->
+	<select id="findSingleHotSinger" parameterType="string" resultType="pd">
+		select s.id hotSingerId,s.singer_name singerName,s.header_path headerPath,h.rank rank,
+		h.id hotId  from dbhotsinger h,dbsinger s
+		where h.hot_id=s.id
+		and h.id=#{hotId}
+	</select>
+	
+	<!-- 新增热门歌曲数据 -->
+	<insert id="addHotSinger" parameterType="pd">
+		insert into dbhotsinger(hot_id,rank)
+		value(#{singerId},#{singerPriority})
+	</insert>
+	
+	<!-- 修改热门歌曲信息数据 -->
+	<update id="updateHotSinger" parameterType="pd">
+		update dbhotsinger
+		<set>
+			<if test="singerId!=null and singerId!=''">
+				hot_id=#{singerId},
+			</if>
+			<if test="singerPriority!=null and singerPriority!=''">
+				rank=#{singerPriority},
+			</if>
+		</set>
+		where id=#{hotId}
+	</update>
+	
+	<!--批量删除或者 删除单个热门歌曲数据 -->
+	<delete id="delHotSingers" parameterType="string">
+		delete from dbhotsinger where id in
+		<foreach collection="array" item="hotId" index="index" open="(" close=")" separator=",">
+			#{hotId}
+		</foreach>
+	</delete>
+</mapper>

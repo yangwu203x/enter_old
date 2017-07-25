@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://www.mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ApkMapper">
+	<select id="findLastApk" resultType="pd">
+		select  apk_path apk_server_path,apk_version verison_num,apk_name,apk_down_path apk_path  
+		from dbapk  order by  apk_version desc
+ 		limit 0,1
+	</select>
+</mapper>

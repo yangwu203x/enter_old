@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://www.mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="GoodsMapper">
+	<!-- 获取所有的商品信息 -->
+	<select id="allGoods" resultType="pd">
+		select g.id goodsId,g.purchase_time purchaseTime,g.price purchasePrice,
+		g.description goodsDesc from dbgoods g
+	</select>
+</mapper>

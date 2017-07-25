@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://www.mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ProductMapper">
+	<!-- 分页获取出货产品信息 -->
+	<select id="listPageProduct" parameterType="page" resultType="pd">
+		select p.product_id,p.sale_time,p.delivery_time,p.first_time,u.mac_address,u.serial_number from dbproduct p,dbuser u
+		where p.user_id=u.user_id
+		<if test="pd.mac_address!=null and pd.mac_address!=''">
+			and u.mac_address like '%${pd.mac_address}%'
+		</if>
+		<if test="pd.start_time!=null and pd.start_time!=''">
+			and p.sale_time >#{pd.start_time}
+		</if>
+		<if test="pd.end_time!=null and pd.end_time!=''">
+			and p.sale_time <![CDATA[<]]> #{pd.end_time}
+		</if>
+	</select>
+	
+	<!-- 获取单个出货产品信息 -->
+	<select id="singleProduct" parameterType="string" resultType="pd">
+		select p.product_id,p.sale_time,p.delivery_time,p.first_time,u.mac_address,u.serial_number from dbproduct p,dbuser u
+		where p.user_id=u.user_id and product_id=#{product_id}
+	</select>
+	
+	<!-- 增加出货产品信息 -->
+	<insert id="addProduct" parameterType="pd">
+		insert into dbproduct(user_id,delivery_time,sale_time)
+		values(#{userId},#{delivery_time},#{sale_time})
+	</insert>
+	
+	<!-- 修改出货产品信息 -->
+	<update id="updateProduct" parameterType="pd">
+		update dbproduct
+		<set>
+			<if test="userId!=null and userId!=''">
+				user_id=#{userId},
+			</if>
+			<if test="delivery_time!=null and delivery_time!=''">
+				delivery_time=#{delivery_time},
+			</if>
+			<if test="sale_time!=null and sale_time!=''">
+				sale_time=#{sale_time},
+			</if>
+		</set>
+		where product_id=#{product_id}
+	</update>
+	
+	<!-- 删除一个或者多个产品信息 -->
+	<delete id="deleteProducts" parameterType="string">
+		 delete from dbproduct where product_id in
+        <foreach item="product_id" index="index" collection="array" open="(" separator="," close=")">
+           #{product_id}
+		</foreach>
+	</delete>
+</mapper>

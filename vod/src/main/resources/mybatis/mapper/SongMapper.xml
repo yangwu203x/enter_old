@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://www.mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="SongMapper">
+	<!-- 获取所有的歌曲信息 -->
+	<select id="findAllSong" resultType="pd">
+		select song_format songFormat,id songId,song_name songName,song_sz songSize,spell songSpell,
+			song_order songOrder,lang_id langId,nature,scene,pixel,song_years songYears,theme_id themeId,
+			classic_status classicStatus,type_id typeId,volume_one volumeOne,volume_two volumeTwo,strack,
+			singer_id_one singerOneNo,singer_id_two singerTwoNo,singer_id_three singerThreeNo,
+			receiving_date receivingDate,ordertime orderTime,song_path songPath,song_info songInfo,
+			song_version songVersion,status songStatus
+		from dbsongs
+	</select>
+	<!-- 分页获取歌曲信息 -->
+	<select id="listPageSong" parameterType="pd" resultType="pd">
+		select 
+			s.id songId,song_name,song_format,song_sz,spell,
+			l.language,nature,scene,pixel,song_years,song_order,
+			t.theme,classic_status,p.type,volume_one,volume_two,strack,
+			singer_id_one,singer_id_two,singer_id_three,
+			(select singer_name from dbsinger d1  where d1.id=s.singer_id_one) singerOneName,
+			(select singer_name from dbsinger d2  where d2.id=s.singer_id_two) singerTwoName,
+			(select singer_name from dbsinger d3  where d3.id=s.singer_id_three) singerThreeName,
+			receiving_date,ordertime,s.status,song_info,song_path,song_version
+		from dbsongs s,dblang l,dbtheme t,dbtype p
+		where s.lang_id=l.id and s.theme_id=t.id and s.type_id=p.id
+		<if test="pd.songName !=null and pd.songName!=''">
+			and song_name like '%${pd.songName}%'
+		</if>
+		order by  s.status
+	</select>
+	
+	<!-- 自动补全 -->
+    <select id="autoSongName" parameterType="pd" resultType="string">
+        select distinct song_name  from dbsongs
+       		where song_name like '%${songName}%'
+       	limit 0,15
+    </select>
+	
+	<!-- 获取单首歌曲信息 -->
+	<select id="singleSong" parameterType="string" resultType="pd">
+		select 
+			id,song_name,song_format,song_sz,spell,song_order songOrder,
+			lang_id,nature,scene,pixel,song_years,
+			theme_id,classic_status,type_id,volume_one,volume_two,strack,
+			singer_id_one,singer_id_two,singer_id_three,
+			(select singer_name from dbsinger d1  where d1.id=s.singer_id_one) singerOneName,
+			(select singer_name from dbsinger d2  where d2.id=s.singer_id_two) singerTwoName,
+			(select singer_name from dbsinger d3  where d3.id=s.singer_id_three) singerThreeName,
+			receiving_date,ordertime,song_info,song_path,song_version
+		from dbsongs s
+		where id=#{songId}
+	</select>
+	
+	<!-- 显示歌曲歌星排行信息 -->
+	<select id="listPageRank" parameterType="page" resultType="pd">
+		SELECT
+			singer_id,
+			(SELECT singer_name FROM dbsinger WHERE id = r.singer_id
+				<if test="pd.singer_name!=null and pd.singer_name!=''">
+					and singer_name like '%${pd.singer_name}%'
+				</if>
+			) singer_name,
+			song_id,
+			(SELECT song_name FROM dbsongs WHERE id = r.song_id 
+				<if test="pd.song_name!=null and pd.song_name!=''">
+					and song_name like '%${pd.song_name}%'
+				</if>
+			) song_name
+		FROM
+			dbrank r
+	</select>
+	
+	<!-- 新增歌曲信息 -->
+	<insert id="addSong" parameterType="pd">
+		insert into dbsongs
+		(
+			id,song_name,song_format,song_sz,spell,
+			lang_id,nature,scene,pixel,song_years,
+			theme_id,classic_status,type_id,volume_one,volume_two,strack,
+			singer_id_one,singer_id_two,singer_id_three,
+			receiving_date,song_path,song_info,song_version,song_order
+		)
+		values
+		(
+			#{songId},#{songName},#{songFormat},#{songSz},#{spell},
+			#{langId},#{nature},#{scene},#{pixel},#{songYears},
+			#{themeId},#{classicStatus},#{typeId},#{volumeOne},
+			#{volumeTwo},#{strack},#{singerIdOne},#{singerIdTwo},
+			#{singerIdThree},#{receivingDate},#{song_path},#{songInfo},
+			#{songVersion},#{songOrder}
+		)
+	</insert>
+	<!-- 修改歌曲信息 -->
+	<update id="updateSong" parameterType="pd">
+		update dbsongs
+		<set>
+			<if test="songName!=null and songName!=''">
+				song_name=#{songName},
+			</if>
+			<if test="songFormat!=null and songFormat!=null">
+				song_format=#{songFormat},
+			</if>
+			<if test="songSz!=null and songSz!=null">
+				song_sz=#{songSz},
+			</if>
+			<if test="spell!=null and spell!=null">
+				spell=#{spell},
+			</if>
+			<if test="langId!=null and langId!=null">
+				lang_id=#{langId},
+			</if>
+			<if test="nature!=null and nature!=null">
+				nature=#{nature},
+			</if>
+			<if test="scene!=null and scene!=null">
+				scene=#{scene},
+			</if>
+			<if test="pixel!=null and pixel!=null">
+				pixel=#{pixel},
+			</if>
+			<if test="songYears!=null and songYears!=null">
+				song_years=#{songYears},
+			</if>
+			<if test="themeId!=null and themeId!=null">
+				theme_id=#{themeId},
+			</if>
+			<if test="classicStatus!=null and classicStatus!=null">
+				classic_status=#{classicStatus},
+			</if>
+			<if test="typeId!=null and typeId!=null">
+				type_id=#{typeId},
+			</if>
+			<if test="volumeOne!=null and volumeOne!=null">
+				volume_one=#{volumeOne},
+			</if>
+			<if test="volumeTwo!=null and volumeTwo!=null">
+				volume_two=#{volumeTwo},
+			</if>
+			<if test="strack!=null and strack!=null">
+				strack=#{strack},
+			</if>
+			<if test="singerIdOne!=null and singerIdOne!=null">
+				singer_id_one=#{singerIdOne},
+			</if>
+			<if test="singerIdTwo!=null and singerIdTwo!=null">
+				singer_id_two=#{singerIdTwo},
+			</if>
+			<if test="singerIdThree!=null and singerIdThree!=null">
+				singer_id_three=#{singerIdThree},
+			</if>
+			<if test="receivingDate!=null and receivingDate!=null">
+				receiving_date=#{receivingDate},
+			</if>
+			<if test="songPath!=null and songPath!=null">
+				song_path=#{songPath},
+			</if>
+			<if test="songInfo!=null and songInfo!=''">
+				song_info=#{songInfo},
+			</if>
+			<if test="songVersion!=null and songVersion!=''">
+				song_version=#{songVersion},
+			</if>
+			<if test="status!=null and status!=''">
+				status=#{status},
+			</if>
+			<if test="pathLevel!=null">
+				path_level=path_level+1,
+			</if>
+		</set>
+		where id=#{oldSongId}
+	</update>
+	
+	<update id="updateStatus" parameterType="pd">
+		update dbsongs set status='1' where id=#{songId}
+	</update>
+	
+	<!-- 删除一个歌曲信息 -->
+	<delete id="deleteSongs" parameterType="pd">
+		 delete from dbsongs where id = #{songId}
+	</delete>
+	<!-- 通过excel导入执行的sql -->
+	<insert id="importSongs" parameterType="java.util.List">
+		insert into dbsongs(
+			song_format,id,song_name,song_sz,spell,song_order,lang_id,
+			nature,scene,pixel,song_years,theme_id,classic_status,type_id,
+			volume_one,volume_two,strack,singer_id_one,singer_id_two,singer_id_three,
+			receiving_date,song_info,song_version) 
+		values
+		<foreach collection="list" item="song" index="index" separator=",">
+			(#{song.songFormat},#{song.songId},#{song.songName},#{song.songSize},#{song.songSpell},
+			#{song.songOrder},#{song.langId},#{song.nature},#{song.scene},#{song.pixel},
+			#{song.songYears},#{song.themeId},#{song.classicStatus},#{song.typeId},#{song.volumeOne},
+			#{song.volumeTwo},#{song.strack},#{song.singerOneNo},#{song.singerTwoNo},
+			#{song.singerThreeNo},#{song.receivingDate},#{song.songInfo},#{song.songVersion})
+		</foreach>
+	</insert>
+	<!-- 获取模板数据 -->
+	<select id="findTemplateData" resultType="pd">
+		select song_format songFormat,id songId,song_name songName,song_sz songSize,spell songSpell,
+			song_order songOrder,lang_id langId,nature,scene,pixel,song_years songYears,theme_id themeId,
+			classic_status classicStatus,type_id typeId,volume_one volumeOne,volume_two volumeTwo,strack,
+			singer_id_one singerOneNo,singer_id_two singerTwoNo,singer_id_three singerThreeNo,
+			receiving_date receivingDate,song_info songInfo,
+			song_version songVersion
+		from dbsongs
+		limit 0,1
+	</select>
+	
+	<update id="updateSongById" parameterType="pd">
+		update dbsongs set
+		song_path=#{songPath}
+		where id=#{songId}
+	</update>
+	
+	<select id="findIdByName" parameterType="pd" resultType="string">
+		select id songId from dbsongs where song_name like '%${songName}%'
+	</select>
+</mapper>

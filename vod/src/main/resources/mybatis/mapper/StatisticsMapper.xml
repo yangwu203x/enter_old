@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://www.mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="StatisticsMapper">
+	<!-- 获取分组歌曲点击率后的总数量 -->
+	<select id="groupSongCount" resultType="int">
+		select count(*) from (select sum(play_num) orderTime,song_id from dbsongstatics
+		group by song_id
+		having orderTime>0) playSong
+	</select>
+	<!-- 统计歌曲点击 -->
+	<select id="statisticsSongPlay" parameterType="pd" resultType="pd">
+		select sum(play_num) orderTime,song_id songId from dbsongstatics
+		group by song_id
+		having orderTime>0 
+		limit #{startPos},#{endPos}
+	</select>
+	
+	<!-- 批量修改歌曲的点击率 -->
+	<update id="updateSongOrdertimes"  parameterType="pd">
+		update dbsongs set ordertime=ordertime+#{orderTime}  where id=#{songId}
+    </update>
+	
+	<!-- 统计歌手1的点击率 -->
+	<select id="statisticsSingerOnePlay" resultType="pd">
+		select s.singer_id_one singerId,sum(play_num) singerOrderTime from dbsongstatics d,dbsongs s where d.song_id=s.id
+		group by d.song_id
+		having singerOrderTime>0
+		limit #{startPos},#{endPos}
+	</select>
+	
+	<!-- 获取分组歌手1点击率后的总数量 -->
+	<select id="groupSingerCount" resultType="int">
+		select count(*) from (select s.singer_id_one,sum(play_num) singerOrderTime from dbsongstatics d,dbsongs s where d.song_id=s.id
+		group by d.song_id
+		having singerOrderTime>0) singerPlay
+	</select>
+	
+	<!-- 统计歌手2的点击率 -->
+	<select id="statisticsSingerTwoPlay"  resultType="pd">
+		select s.singer_id_two singerId,sum(play_num) singerOrderTime from dbsongstatics d,dbsongs s where d.song_id=s.id
+		group by d.song_id
+		having singerOrderTime>0 
+		limit #{startPos},#{endPos}
+	</select>
+	
+	<!-- 获取分组歌手2点击率后的总数量 -->
+	<select id="groupSingeTworCount" resultType="int">
+		select count(*) from (select s.singer_id_two,sum(play_num) singerOrderTime from dbsongstatics d,dbsongs s where d.song_id=s.id
+		group by d.song_id
+		having singerOrderTime>0) singerPlay
+	</select>
+	<!-- 统计歌手3的点击率 -->
+	<select id="statisticsSingerThreePlay" resultType="pd">
+		select s.singer_id_three singerId,sum(play_num) singerOrderTime from dbsongstatics d,dbsongs s where d.song_id=s.id
+		group by d.song_id
+		having singerOrderTime>0 
+		limit #{startPos},#{endPos}
+	</select>
+	<!-- 获取分组歌手3点击率后的总数量 -->
+	<select id="groupSingerThreeCount" resultType="int">
+		select count(*) from (select s.singer_id_three,sum(play_num) singerOrderTime from dbsongstatics d,dbsongs s where d.song_id=s.id
+		group by d.song_id
+		having singerOrderTime>0) singerPlay
+	</select>
+	
+	<!-- 根据歌曲点击率来获取排名100行的数据 -->
+	<select id="songRanks" resultType="string">
+		select id songId from dbsongs order by ordertime desc limit 0,100
+	</select>
+	<!-- 根据歌手点击率来获取排名100行的数据 -->
+	<select id="singerRanks" resultType="string">
+		select id singerId from dbsinger order by singer_ordertimes desc limit 0,100
+	</select>
+	
+	<!-- 批量修改歌手的点击量 -->
+	<update id="updateSingerOrdertimes"  parameterType="pd">
+			update dbsinger set singer_ordertimes=singer_ordertimes+#{singerOrderTime}  where id=#{singerId}
+    </update>
+    <!-- 批量新增歌曲收藏数据的同步 -->
+    <insert id="addSongSingerRank" parameterType="pd">
+	    insert into dbrank(singer_id,song_id) values
+		<foreach collection="list" item="songSinger" index="index" separator="," >  
+        	(#{songSinger.singerId},#{songSinger.songId})
+   		</foreach> 
+   	</insert>
+   	<!-- 在执行排行前，将原有排行删除 -->
+   	<delete id="deleteRank">
+   		delete from dbrank
+   	</delete>
+</mapper>

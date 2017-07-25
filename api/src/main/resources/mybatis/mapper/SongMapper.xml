@@ -1,0 +1,772 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://www.mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="SongMapper">
+	<!-- 获取同步歌曲的数据 -->
+	<select id="asyncSongs" parameterType="pd" resultType="pd">
+		select id songId,song_name songName,song_format songFormat,song_sz
+		songSz,
+		spell,song_order songOrder,lang_id langId,nature,scene,pixel,
+		song_years songYears,theme_id themeId,classic_status classicStatus,
+		type_id typeId,volume_one volumeOne,volume_two volumeTwo,strack,
+		singer_id_one singerIdOne,singer_id_two singerIdTwo,singer_id_three
+		singerIdThree,
+		receiving_date receivinDate,ordertime,song_path
+		songPath,song_info songInfo,
+		DATE_FORMAT(song_version,'%Y-%m-%d')
+		songVersion,path_level pathLevel
+		from dbsongs where song_path!=''
+		<if test="songVersion!=null and songVersion!=''">
+			and song_version>#{songVersion}
+		</if>
+	</select>
+
+	<!-- 获取热门歌曲 -->
+	<select id="findHotSongs" resultType="pd">
+		select id hotId,hot_id
+		hotSongId,rank from dbhotsong
+	</select>
+
+	<!-- 获取新歌数据 -->
+	<select id="findNewSongs" resultType="pd">
+		select id newId,new_id
+		newSongId from dbnewsong
+	</select>
+
+	<!-- 获取歌曲类型的同步数据 -->
+	<select id="asyncSongTypes" parameterType="pd" resultType="pd">
+		select id entId,type entName
+		from dbtype
+	</select>
+
+	<select id="asyncSongLang" parameterType="pd" resultType="pd">
+		select
+		id langId,language, rank langRank
+		from dblang
+	</select>
+
+	<!-- 获取歌曲的下载权限 -->
+	<select id="songPrivilege" parameterType="pd" resultType="int">
+		select
+		count(user_id) from dbuser where mac_address=#{macAddress} and
+		serial_number=#{serialNum}
+	</select>
+
+	<!-- 获取歌曲主题的数据同步 -->
+	<select id="asyncSongTheme" parameterType="pd" resultType="pd">
+		select id themeId,theme
+		from dbtheme
+	</select>
+	<!-- 查询K歌首页大图版本 -->
+	<select id="queryRecommendImage" parameterType="pd" resultType="int">
+		select version
+		from dbSongImageVersion limit 0,1
+	</select>
+	<!-- 查询用户收藏歌曲 -->
+	<select id="queryUserCollect" parameterType="requestBean"
+		resultType="pd">
+		SELECT
+		dbsongs.id,dbsongs.song_name,dbsongs.singer_name,dbsongs.song_format
+		song_model,dbsongs.ordertime,dbsongs.singer_id_one,dbsongs.singer_id_two,dbsongs.singer_id_three
+		FROM dbsongs WHERE dbsongs.id IN (SELECT song_id FROM dbuserfavorite
+		where user_id=#{requestParams.userId}) limit
+		#{requestParams.page},#{requestParams.dataNum}
+	</select>
+	<!-- 查询用户收藏歌曲的数量 -->
+	<select id="queryUserCollectCount" parameterType="requestBean"
+		resultType="int">
+		SELECT count(*) from dbuserfavorite where
+		user_id=#{requestParams.userId}
+	</select>
+	<!-- 根据歌星ID查询歌星名称 -->
+	<select id="querySingerNameById" parameterType="int" resultType="String">
+		select singer_name
+		from dbsinger where id=#{id}
+	</select>
+	<!-- 查询最热（最近歌曲）推荐 -->
+	<select id="queryHotSongsForRecommend" parameterType="requestBean"
+		resultType="pd">
+		SELECT
+		dbsongs.id,dbsongs.song_name,dbsongs.singer_name,dbsongs.song_format
+		song_model,dbsongs.ordertime,dbsongs.singer_id_one,dbsongs.singer_id_two,dbsongs.singer_id_three
+		FROM dbsongs ORDER BY dbsongs.ordertime DESC LIMIT
+		#{requestParams.page},#{requestParams.dataNum}
+	</select>
+	<!-- 查询最热（最近歌曲）推荐数量 -->
+	<select id="queryHotSongsForRecommendCount" parameterType="requestBean"
+		resultType="int">
+		SELECT
+		count(*)
+		FROM dbsongs
+	</select>
+	<!-- 查询最热（最近歌曲）新歌 -->
+	<select id="queryHotSongsForNewSong" parameterType="requestBean"
+		resultType="pd">
+		SELECT
+		dbsongs.id,dbsongs.song_name,dbsongs.singer_name,dbsongs.song_format
+		song_model,dbsongs.ordertime,dbsongs.singer_id_one,dbsongs.singer_id_two,dbsongs.singer_id_three
+		FROM dbsongs where dbsongs.id in(select new_id from dbnewsong) ORDER
+		BY dbsongs.ordertime DESC LIMIT
+		#{requestParams.page},#{requestParams.dataNum}
+	</select>
+	<!-- 查询最热（最近歌曲）新歌数量 -->
+	<select id="queryHotSongsForNewSongCount" parameterType="requestBean"
+		resultType="int">
+		SELECT count(*) from dbnewsong
+	</select>
+	<!-- 查询最热（最近歌曲）经典老歌 -->
+	<select id="queryHotSongsForClassicSong" parameterType="requestBean"
+		resultType="pd">
+		SELECT
+		dbsongs.id,dbsongs.song_name,dbsongs.singer_name,dbsongs.song_format
+		song_model,dbsongs.ordertime,dbsongs.singer_id_one,dbsongs.singer_id_two,dbsongs.singer_id_three
+		FROM dbsongs where classic_status=1 ORDER
+		BY dbsongs.ordertime DESC
+		LIMIT
+		#{requestParams.page},#{requestParams.dataNum}
+	</select>
+	<!-- 查询最热（最近歌曲）经典老歌数量 -->
+	<select id="queryHotSongsForClassicSongCount" parameterType="requestBean"
+		resultType="int">
+		SELECT count(*) from dbsongs where classic_status=1
+	</select>
+	<!-- 查询最热（最近歌曲）熱門歌曲 -->
+	<select id="queryHotSongsForHot" parameterType="requestBean"
+		resultType="pd">
+		SELECT
+		dbsongs.id,dbsongs.song_name,dbsongs.singer_name,dbsongs.song_format
+		song_model,dbsongs.ordertime,dbsongs.singer_id_one,dbsongs.singer_id_two,dbsongs.singer_id_three
+		FROM dbsongs ORDER
+		BY dbsongs.ordertime DESC LIMIT
+		#{requestParams.page},#{requestParams.dataNum}
+	</select>
+	<!-- 查询最热（最近歌曲）熱門歌曲数量 -->
+	<select id="queryHotSongsForHotCount" parameterType="requestBean"
+		resultType="int">
+		SELECT count(*) from dbhotsong
+	</select>
+	<!-- 查询最热（最近歌曲）戏曲 -->
+	<select id="queryHotSongsForOpera" parameterType="requestBean"
+		resultType="pd">
+		SELECT
+		dbsongs.id,dbsongs.song_name,dbsongs.singer_name,dbsongs.song_format
+		song_model,dbsongs.ordertime,dbsongs.singer_id_one,dbsongs.singer_id_two,dbsongs.singer_id_three
+		FROM dbsongs where theme_id=5 ORDER
+		BY dbsongs.ordertime DESC
+		LIMIT
+		#{requestParams.page},#{requestParams.dataNum}
+	</select>
+	<!-- 查询最热（最近歌曲）戏曲 -->
+	<select id="queryHotSongsForOperaCount" parameterType="requestBean"
+		resultType="int">
+		SELECT count(*) from dbsongs where theme_id=5
+	</select>
+	<!-- 查询最热（最近歌曲）儿歌 -->
+	<select id="queryHotSongsForChild" parameterType="requestBean"
+		resultType="pd">
+		SELECT
+		dbsongs.id,dbsongs.song_name,dbsongs.singer_name,dbsongs.song_format
+		song_model,dbsongs.ordertime,dbsongs.singer_id_one,dbsongs.singer_id_two,dbsongs.singer_id_three
+		FROM dbsongs where theme_id=2 ORDER
+		BY dbsongs.ordertime DESC
+		LIMIT
+		#{requestParams.page},#{requestParams.dataNum}
+	</select>
+	<!-- 查询最热（最近歌曲）儿歌 -->
+	<select id="queryHotSongsForChildCount" parameterType="requestBean"
+		resultType="int">
+		SELECT count(*) from dbsongs where theme_id=2
+	</select>
+	<!-- 查询最热（最近歌曲）K-POP 韩国 -->
+	<select id="queryHotSongsForK_POP" parameterType="requestBean"
+		resultType="pd">
+		SELECT
+		dbsongs.id,dbsongs.song_name,dbsongs.singer_name,dbsongs.song_format
+		song_model,dbsongs.ordertime,dbsongs.singer_id_one,dbsongs.singer_id_two,dbsongs.singer_id_three
+		FROM dbsongs where lang_id=5 ORDER
+		BY dbsongs.ordertime DESC
+		LIMIT
+		#{requestParams.page},#{requestParams.dataNum}
+	</select>
+	<!-- 查询最热（最近歌曲）K-POP 韩国 -->
+	<select id="queryHotSongsForK_POPCount" parameterType="requestBean"
+		resultType="int">
+		SELECT count(*) from dbsongs where lang_id=5
+	</select>
+
+	<!-- 查询最热（最近歌曲）K-POP 日本 -->
+	<select id="queryHotSongsForJapan" parameterType="requestBean"
+		resultType="pd">
+		SELECT
+		dbsongs.id,dbsongs.song_name,dbsongs.singer_name,dbsongs.song_format
+		song_model,dbsongs.ordertime,dbsongs.singer_id_one,dbsongs.singer_id_two,dbsongs.singer_id_three
+		FROM dbsongs where lang_id=6 ORDER
+		BY dbsongs.ordertime DESC
+		LIMIT
+		#{requestParams.page},#{requestParams.dataNum}
+	</select>
+	<!-- 查询最热（最近歌曲）K-POP 日本count -->
+	<select id="queryHotSongsForJapanCount" parameterType="requestBean"
+		resultType="int">
+		SELECT count(*) from dbsongs where lang_id=6
+	</select>
+
+	<!-- 查询最热（最近歌曲）K-POP 欧美 -->
+	<select id="queryHotSongsForAmerica" parameterType="requestBean"
+		resultType="pd">
+		SELECT
+		dbsongs.id,dbsongs.song_name,dbsongs.singer_name,dbsongs.song_format
+		song_model,dbsongs.ordertime,dbsongs.singer_id_one,dbsongs.singer_id_two,dbsongs.singer_id_three
+		FROM dbsongs where lang_id=8 ORDER
+		BY dbsongs.ordertime DESC
+		LIMIT
+		#{requestParams.page},#{requestParams.dataNum}
+	</select>
+	<!-- 查询最热（最近歌曲）K-POP 欧美count -->
+	<select id="queryHotSongsForAmericaCount" parameterType="requestBean"
+		resultType="int">
+		SELECT count(*) from dbsongs where lang_id=8
+	</select>
+
+	<!-- 查询最热（最近歌曲）K-POP 菲律宾 -->
+	<select id="queryHotSongsForFilipino" parameterType="requestBean"
+		resultType="pd">
+		SELECT
+		dbsongs.id,dbsongs.song_name,dbsongs.singer_name,dbsongs.song_format
+		song_model,dbsongs.ordertime,dbsongs.singer_id_one,dbsongs.singer_id_two,dbsongs.singer_id_three
+		FROM dbsongs where lang_id=9 ORDER
+		BY dbsongs.ordertime DESC
+		LIMIT
+		#{requestParams.page},#{requestParams.dataNum}
+	</select>
+	<!-- 查询最热（最近歌曲）K-POP 菲律宾count -->
+	<select id="queryHotSongsForFilipinoCount" parameterType="requestBean"
+		resultType="int">
+		SELECT count(*) from dbsongs where lang_id=9
+	</select>
+
+	<!-- 查询最热（最近歌曲）K-POP 越南 -->
+	<select id="queryHotSongsForVietnam" parameterType="requestBean"
+		resultType="pd">
+		SELECT
+		dbsongs.id,dbsongs.song_name,dbsongs.singer_name,dbsongs.song_format
+		song_model,dbsongs.ordertime,dbsongs.singer_id_one,dbsongs.singer_id_two,dbsongs.singer_id_three
+		FROM dbsongs where lang_id=10 ORDER
+		BY dbsongs.ordertime DESC
+		LIMIT
+		#{requestParams.page},#{requestParams.dataNum}
+	</select>
+	<!-- 查询最热（最近歌曲）K-POP 越南count -->
+	<select id="queryHotSongsForVietnamCount" parameterType="requestBean"
+		resultType="int">
+		SELECT count(*) from dbsongs where lang_id=10
+	</select>
+
+	<!-- 查询歌曲A-Z 新歌 -->
+	<select id="querySongsForA_ZNewSong" parameterType="requestBean"
+		resultType="pd">
+		SELECT
+		dbsongs.id,dbsongs.song_name,dbsongs.singer_name,dbsongs.song_format
+		song_model,dbsongs.ordertime,dbsongs.singer_id_one,dbsongs.singer_id_two,dbsongs.singer_id_three
+		FROM dbsongs where dbsongs.id in(select new_id from dbnewsong) and
+		spell like concat(#{requestParams.spell},'%') ORDER
+		BY
+		dbsongs.ordertime DESC
+		LIMIT
+		#{requestParams.page},#{requestParams.dataNum}
+	</select>
+	<!-- 查询歌曲A-Z 新歌count -->
+	<select id="querySongsForA_ZNewSongCount" parameterType="requestBean"
+		resultType="int">
+		SELECT count(*) from dbsongs where dbsongs.id in(select
+		new_id from dbnewsong) and spell like
+		concat(#{requestParams.spell},'%') </select>
+
+	<!-- 查询歌曲A-Z 经典老歌 -->
+	<select id="querySongsForA_ZClassic" parameterType="requestBean"
+		resultType="pd">
+		SELECT
+		dbsongs.id,dbsongs.song_name,dbsongs.singer_name,dbsongs.song_format
+		song_model,dbsongs.ordertime,dbsongs.singer_id_one,dbsongs.singer_id_two,dbsongs.singer_id_three
+		FROM dbsongs where classic_status=1 and
+		spell like
+		concat(#{requestParams.spell},'%') ORDER
+		BY dbsongs.ordertime DESC
+		LIMIT
+		#{requestParams.page},#{requestParams.dataNum}
+	</select>
+	<!-- 查询歌曲A-Z 经典老歌count -->
+	<select id="querySongsForA_ZClassicCount" parameterType="requestBean"
+		resultType="int">
+		SELECT count(*) from dbsongs where classic_status=1 and
+		spell like concat(#{requestParams.spell},'%') </select>
+
+	<!-- 查询歌曲A-Z 热门金典 -->
+	<select id="querySongsForA_ZHot" parameterType="requestBean"
+		resultType="pd">
+		SELECT
+		dbsongs.id,dbsongs.song_name,dbsongs.singer_name,dbsongs.song_format
+		song_model,dbsongs.ordertime,dbsongs.singer_id_one,dbsongs.singer_id_two,dbsongs.singer_id_three
+		FROM dbsongs where dbsongs.id in(select hot_id from dbhotsong) and
+		spell like
+		concat(#{requestParams.spell},'%') ORDER
+		BY dbsongs.ordertime
+		DESC
+		LIMIT
+		#{requestParams.page},#{requestParams.dataNum}
+	</select>
+	<!-- 查询歌曲A-Z 热门金典count -->
+	<select id="querySongsForA_ZHotCount" parameterType="requestBean"
+		resultType="int">
+		SELECT count(*) from dbsongs where dbsongs.id in(select
+		hot_id from dbhotsong) and
+		spell like
+		concat(#{requestParams.spell},'%') </select>
+
+	<!-- 查询歌曲A-Z 戏曲 -->
+	<select id="querySongsForA_ZOpera" parameterType="requestBean"
+		resultType="pd">
+		SELECT
+		dbsongs.id,dbsongs.song_name,dbsongs.singer_name,dbsongs.song_format
+		song_model,dbsongs.ordertime,dbsongs.singer_id_one,dbsongs.singer_id_two,dbsongs.singer_id_three
+		FROM dbsongs where theme_id=5 and
+		spell like
+		concat(#{requestParams.spell},'%')
+		ORDER
+		BY dbsongs.ordertime DESC
+		LIMIT
+		#{requestParams.page},#{requestParams.dataNum}
+	</select>
+	<!-- 查询歌曲A-Z 戏曲count -->
+	<select id="querySongsForA_ZOperaCount" parameterType="requestBean"
+		resultType="int">
+		SELECT count(*) from dbsongs where theme_id=5 and
+		spell like
+		concat(#{requestParams.spell},'%') </select>
+
+
+	<!-- 查询歌星、歌曲-歌曲提示 -->
+	<select id="querySongsByNamePrompt" parameterType="requestBean"
+		resultType="pd">
+		SELECT
+		dbsongs.id,dbsongs.song_name,dbsongs.singer_name,dbsongs.song_format
+		song_model,dbsongs.ordertime,dbsongs.singer_id_one,dbsongs.singer_id_two,dbsongs.singer_id_three
+		FROM dbsongs where
+		spell like
+		concat(#{requestParams.content},'%')
+		LIMIT
+		0,3
+	</select>
+	<!-- 查询歌星、歌曲-歌曲 By Spell -->
+	<select id="querySongsBySpell" parameterType="requestBean"
+		resultType="pd">
+		SELECT
+		dbsongs.id,dbsongs.song_name,dbsongs.singer_name,dbsongs.song_format
+		song_model,dbsongs.ordertime,dbsongs.singer_id_one,dbsongs.singer_id_two,dbsongs.singer_id_three
+		from dbsongs where
+		spell like
+		concat(#{requestParams.content},'%') ORDER
+		BY dbsongs.ordertime DESC
+		LIMIT
+		#{requestParams.page},#{requestParams.dataNum}
+	</select>
+	<!-- 查询歌星、歌曲-歌星 By Spell -->
+	<select id="querySingerBySpell" parameterType="requestBean"
+		resultType="pd">
+		SELECT id,singer_name,header_path,song_count from dbsinger
+		where dbsinger.song_count>0 and
+		singer_pinyin like
+		concat(#{requestParams.content},'%') LIMIT
+		0,3
+	</select>
+	<!-- 查询歌星、歌曲-歌曲 By Spell count -->
+	<select id="querySongsBySpellCount" parameterType="requestBean"
+		resultType="int">
+		SELECT
+		count(*)
+		from dbsongs where
+		spell like
+		concat(#{requestParams.content},'%')
+	</select>
+	<!-- 查询歌星、歌曲-歌曲 By Name -->
+	<select id="querySongsByName" parameterType="requestBean"
+		resultType="pd">
+		SELECT
+		dbsongs.id,dbsongs.song_name,dbsongs.singer_name,dbsongs.song_format
+		song_model,dbsongs.ordertime,dbsongs.singer_id_one,dbsongs.singer_id_two,dbsongs.singer_id_three
+		from dbsongs where
+		dbsongs.song_name like
+		concat(#{requestParams.content},'%') ORDER
+		BY dbsongs.ordertime DESC
+		LIMIT
+		#{requestParams.page},#{requestParams.dataNum}
+	</select>
+	<!-- 查询歌星、歌曲-歌星 By Name -->
+	<select id="querySingerByName" parameterType="requestBean"
+		resultType="pd">
+		SELECT id,singer_name,header_path,song_count from dbsinger
+		where dbsinger.song_count>0 and
+		dbsinger.singer_name like
+		concat(#{requestParams.content},'%') LIMIT
+		0,3
+	</select>
+	<!-- 查询歌星、歌曲-歌曲 By Name count -->
+	<select id="querySongsByNameCount" parameterType="requestBean"
+		resultType="int">
+		SELECT
+		count(*)
+		from dbsongs where
+		dbsongs.song_name like
+		concat(#{requestParams.content},'%') </select>
+
+	<!-- 查询歌星、歌曲-歌星 By Name Limit -->
+	<select id="querySingerByNameLimit" parameterType="requestBean"
+		resultType="pd">
+		SELECT id,singer_name,header_path,song_count from dbsinger
+		where where dbsinger.song_count>0 and
+		singer_name like
+		concat(#{requestParams.content},'%') LIMIT
+		#{requestParams.page},#{requestParams.dataNum}
+	</select>
+	<!-- 查询歌星、歌曲-歌星 By Spell Limit -->
+	<select id="querySingerBySpellLimit" parameterType="requestBean"
+		resultType="pd">
+		SELECT id,singer_name,header_path,song_count from dbsinger
+		where where dbsinger.song_count>0 and
+		singer_pinyin like
+		concat(#{requestParams.content},'%') LIMIT
+		#{requestParams.page},#{requestParams.dataNum}
+	</select>
+
+	<!-- 查询歌星、歌曲-歌星 By Name Limit Count -->
+	<select id="querySingerByNameLimitCount" parameterType="requestBean"
+		resultType="int">
+		SELECT count(*) from dbsinger
+		where
+		singer_name like
+		concat(#{requestParams.content},'%')
+	</select>
+	<!-- 查询歌星、歌曲-歌星 By Spell Limit Count -->
+	<select id="querySingerBySpellLimitCount" parameterType="requestBean"
+		resultType="int">
+		SELECT count(*) from dbsinger
+		where
+		singer_pinyin like
+		concat(#{requestParams.content},'%')
+	</select>
+
+	<!-- 搜索歌曲 spell -->
+	<select id="querySongsBySpellLimit" parameterType="requestBean"
+		resultType="pd">
+		SELECT
+		dbsongs.id,dbsongs.song_name,dbsongs.singer_name,dbsongs.song_format
+		song_model,dbsongs.ordertime,dbsongs.singer_id_one,dbsongs.singer_id_two,dbsongs.singer_id_three
+		FROM dbsongs where
+		spell like
+		concat(#{requestParams.content},'%') ORDER
+		BY dbsongs.ordertime DESC
+		LIMIT
+		#{requestParams.page},#{requestParams.dataNum}
+	</select>
+	<!-- 搜索歌曲 spell count -->
+	<select id="querySongsBySpellLimitCount" parameterType="requestBean"
+		resultType="int">
+		SELECT count(*) from dbsongs where
+		spell like
+		concat(#{requestParams.content},'%') </select>
+
+	<!-- 搜索歌曲 name -->
+	<select id="querySongsByNameLimit" parameterType="requestBean"
+		resultType="pd">
+		SELECT
+		dbsongs.id,dbsongs.song_name,dbsongs.singer_name,dbsongs.song_format
+		song_model,dbsongs.ordertime,dbsongs.singer_id_one,dbsongs.singer_id_two,dbsongs.singer_id_three
+		FROM dbsongs where
+		song_name like
+		concat(#{requestParams.content},'%')
+		ORDER
+		BY dbsongs.ordertime DESC
+		LIMIT
+		#{requestParams.page},#{requestParams.dataNum}
+	</select>
+	<!-- 搜索歌曲 name count -->
+	<select id="querySongsByNameLimitCount" parameterType="requestBean"
+		resultType="int">
+		SELECT count(*) from dbsongs where
+		song_name like
+		concat(#{requestParams.content},'%') </select>
+
+	<!-- 返回热门搜索 -->
+	<select id="queryHotSearch" parameterType="requestBean"
+		resultType="pd">
+		SELECT id,song_name from dbhotsearch limit
+		0,#{requestParams.dataNum}
+	</select>
+
+	<!-- *********************************************动态类别查询、歌曲查询*********************************************************************** -->
+	<!-- 返回歌曲类别 -->
+	<select id="searchSongType" parameterType="requestBean"
+		resultType="pd">
+		SELECT dbcommendtype.commend_type
+		,dbcommendtype.commend_source,dbcommendtype.field_id,dbcommendtype.commend_screen,dbcommendtype.commend_screen2,dbcommendtype.commend_screen3,dbcommendtype.commend_screen4,dbcommendtype.rank
+		FROM dbcommendtype ORDER BY rank ASC;
+	</select>
+	<!-- 通过ID查询某一筛选条件的名称 -->
+	<select id="queryScreenNameById" parameterType="int" resultType="String">
+		SELECT screen_name FROM dbsongsscreenfunction WHERE id=#{id}
+	</select>
+
+	<!-- 查询推荐歌曲 -->
+	<select id="queryCommendSongs" parameterType="requestBean"
+		resultType="pd">
+		SELECT
+		dbsongs.id,dbsongs.song_name,dbsongs.singer_name,dbsongs.song_format
+		song_model,dbsongs.ordertime,dbsongs.singer_id_one,dbsongs.singer_id_two,dbsongs.singer_id_three
+		FROM dbsongs ORDER BY dbsongs.ordertime DESC LIMIT
+		#{requestParams.page},#{requestParams.dataNum}
+	</select>
+	<!-- 查询推荐歌曲Count -->
+	<select id="queryCommendSongsCount" parameterType="requestBean"
+		resultType="int">
+		SELECT
+		count(*)
+		FROM dbsongs ORDER BY dbsongs.ordertime DESC
+	</select>
+	<!-- 查询新歌歌曲 -->
+	<select id="queryNewSong" parameterType="requestBean"
+		resultType="pd">
+		SELECT
+		dbsongs.id,dbsongs.song_name,dbsongs.singer_name,dbsongs.song_format
+		song_model,dbsongs.ordertime,dbsongs.singer_id_one,dbsongs.singer_id_two,dbsongs.singer_id_three
+		FROM dbsongs where dbsongs.id in(select new_id from dbnewsong) ORDER
+		BY dbsongs.ordertime DESC LIMIT
+		#{requestParams.page},#{requestParams.dataNum}
+	</select>
+	<!-- 查询新歌歌曲Count -->
+	<select id="queryNewSongCount" parameterType="requestBean"
+		resultType="int">
+		SELECT
+		count(*)
+		FROM dbsongs where dbsongs.id in(select
+		new_id from dbnewsong) ORDER
+		BY dbsongs.ordertime DESC
+	</select>
+	<!-- 查询经典歌曲 -->
+	<select id="queryClassicSong" parameterType="requestBean"
+		resultType="pd">
+		SELECT
+		dbsongs.id,dbsongs.song_name,dbsongs.singer_name,dbsongs.song_format
+		song_model,dbsongs.ordertime,dbsongs.singer_id_one,dbsongs.singer_id_two,dbsongs.singer_id_three
+		FROM dbsongs where classic_status=1
+		<if test="requestParams.screen_id == 2">
+			AND spell like
+			concat(#{requestParams.spell},'%')
+		</if>
+		<if test="requestParams.screen_id == 3">
+			AND spell like
+			concat(#{requestParams.spell},'%')
+		</if>
+		ORDER
+		BY dbsongs.ordertime DESC
+		LIMIT
+		#{requestParams.page},#{requestParams.dataNum}
+	</select>
+	<!-- 查询经典歌曲Count -->
+	<select id="queryClassicSongCount" parameterType="requestBean"
+		resultType="int">
+		SELECT
+		count(*)
+		FROM dbsongs where classic_status=1
+		<if test="requestParams.screen_id == 2">
+			AND spell like
+			concat(#{requestParams.spell},'%')
+		</if>
+		<if test="requestParams.screen_id == 3">
+			AND spell like
+			concat(#{requestParams.spell},'%')
+		</if>
+	</select>
+
+	<!-- 查询语种歌曲 -->
+	<select id="queryLangSong" parameterType="requestBean"
+		resultType="pd">
+		SELECT
+		dbsongs.id,dbsongs.song_name,dbsongs.singer_name,dbsongs.song_format
+		song_model,dbsongs.ordertime,dbsongs.singer_id_one,dbsongs.singer_id_two,dbsongs.singer_id_three
+		FROM dbsongs where lang_id=#{requestParams.field_id}
+		<if test="requestParams.screen_id == 2">
+			AND spell like
+			concat(#{requestParams.spell},'%')
+		</if>
+		<if test="requestParams.screen_id == 3">
+			AND spell like
+			concat(#{requestParams.spell},'%')
+		</if>
+		ORDER
+		BY dbsongs.ordertime DESC
+		LIMIT
+		#{requestParams.page},#{requestParams.dataNum}
+	</select>
+	<!-- 查询语种歌曲Count -->
+	<select id="queryLangSongCount" parameterType="requestBean"
+		resultType="int">
+		SELECT
+		count(*)
+		FROM dbsongs where lang_id=#{requestParams.field_id}
+		<if test="requestParams.screen_id == 2">
+			AND spell like
+			concat(#{requestParams.spell},'%')
+		</if>
+		<if test="requestParams.screen_id == 3">
+			AND spell like
+			concat(#{requestParams.spell},'%')
+		</if>
+	</select>
+
+	<!-- 查询热门歌曲 -->
+	<select id="queryOrderTimeSong" parameterType="requestBean"
+		resultType="pd">
+		SELECT
+		dbsongs.id,dbsongs.song_name,dbsongs.singer_name,dbsongs.song_format
+		song_model,dbsongs.ordertime,dbsongs.singer_id_one,dbsongs.singer_id_two,dbsongs.singer_id_three
+		FROM dbsongs
+		<if test="requestParams.screen_id == 2">
+			where spell like
+			concat(#{requestParams.spell},'%')
+		</if>
+		<if test="requestParams.screen_id == 3">
+			where spell like
+			concat(#{requestParams.spell},'%')
+		</if>
+		ORDER
+		BY dbsongs.ordertime DESC
+		LIMIT
+		#{requestParams.page},#{requestParams.dataNum}
+	</select>
+	<!-- 查询热门歌曲Count -->
+	<select id="queryOrderTimeSongCount" parameterType="requestBean"
+		resultType="int">
+		SELECT
+		count(*)
+		FROM dbsongs
+		<if test="requestParams.screen_id == 2">
+			where spell like
+			concat(#{requestParams.spell},'%')
+		</if>
+		<if test="requestParams.screen_id == 3">
+			where spell like
+			concat(#{requestParams.spell},'%')
+		</if>
+	</select>
+
+	<!-- 查询娱乐节目歌曲 -->
+	<select id="queryTypeSong" parameterType="requestBean"
+		resultType="pd">
+		SELECT
+		dbsongs.id,dbsongs.song_name,dbsongs.singer_name,dbsongs.song_format
+		song_model,dbsongs.ordertime,dbsongs.singer_id_one,dbsongs.singer_id_two,dbsongs.singer_id_three
+		FROM dbsongs where type_id=#{requestParams.field_id}
+		<if test="requestParams.screen_id == 2">
+			AND spell like
+			concat(#{requestParams.spell},'%')
+		</if>
+		<if test="requestParams.screen_id == 3">
+			AND spell like
+			concat(#{requestParams.spell},'%')
+		</if>
+		ORDER
+		BY dbsongs.ordertime DESC
+		LIMIT
+		#{requestParams.page},#{requestParams.dataNum}
+	</select>
+	<!-- 查询娱乐节目歌曲Count -->
+	<select id="queryTypeSongCount" parameterType="requestBean"
+		resultType="int">
+		SELECT
+		count(*)
+		FROM dbsongs where type_id=#{requestParams.field_id}
+		<if test="requestParams.screen_id == 2">
+			AND spell like
+			concat(#{requestParams.spell},'%')
+		</if>
+		<if test="requestParams.screen_id == 3">
+			AND spell like
+			concat(#{requestParams.spell},'%')
+		</if>
+	</select>
+
+	<!-- 查询动态类别歌曲 -->
+	<select id="queryThemeSong" parameterType="requestBean"
+		resultType="pd">
+		SELECT
+		dbsongs.id,dbsongs.song_name,dbsongs.singer_name,dbsongs.song_format
+		song_model,dbsongs.ordertime,dbsongs.singer_id_one,dbsongs.singer_id_two,dbsongs.singer_id_three
+		FROM dbsongs where theme_id=#{requestParams.field_id} OR
+		theme_id2=#{requestParams.field_id} OR
+		theme_id3=#{requestParams.field_id}
+		<if test="requestParams.screen_id == 2">
+			AND spell like
+			concat(#{requestParams.spell},'%')
+		</if>
+		<if test="requestParams.screen_id == 3">
+			AND spell like
+			concat(#{requestParams.spell},'%')
+		</if>
+		ORDER
+		BY dbsongs.ordertime DESC
+		LIMIT
+		#{requestParams.page},#{requestParams.dataNum}
+	</select>
+	<!-- 查询动态类别歌曲Count -->
+	<select id="queryThemeSongCount" parameterType="requestBean"
+		resultType="int">
+		SELECT
+		count(*)
+		FROM dbsongs where theme_id=#{requestParams.field_id} OR
+		theme_id2=#{requestParams.field_id} OR
+		theme_id3=#{requestParams.field_id}
+		<if test="requestParams.screen_id == 2">
+			AND spell like
+			concat(#{requestParams.spell},'%')
+		</if>
+		<if test="requestParams.screen_id == 3">
+			AND spell like
+			concat(#{requestParams.spell},'%')
+		</if>
+	</select>
+	<!-- *********************************************动态类别查询、歌曲查询*********************************************************************** -->
+	<!-- 用户反馈 -->
+	<insert id="userFeedBackForSongs" parameterType="requestBean">
+		insert into
+		dbsongsuserfeedback(user_id,song_name,singer_name,song_lang,feedbackcontent)
+		values(#{requestParams.userId},#{requestParams.songName},#{requestParams.singerName},#{requestParams.songLang},#{requestParams.feedBackContent})
+	</insert>
+
+	<!-- 查询歌星歌曲 -->
+	<select id="querySingerSongs" parameterType="requestBean"
+		resultType="pd">
+		SELECT
+		dbsongs.id,dbsongs.song_name,dbsongs.singer_name,dbsongs.song_format
+		song_model,dbsongs.ordertime,dbsongs.singer_id_one,dbsongs.singer_id_two,dbsongs.singer_id_three
+		FROM dbsongs where
+		FIND_IN_SET((select singer_name from dbsinger where
+		id=#{requestParams.singerId}),dbsongs.singer_name) or
+		dbsongs.singer_id_one=#{requestParams.singerId} or
+		dbsongs.singer_id_two=#{requestParams.singerId} or
+		dbsongs.singer_id_three=#{requestParams.singerId}
+		ORDER
+		BY
+		dbsongs.ordertime DESC
+		LIMIT
+		#{requestParams.page},#{requestParams.dataNum}
+	</select>
+	<!-- 查询歌星歌曲 count -->
+	<select id="querySingerSongsCount" parameterType="requestBean"
+		resultType="int">
+		SELECT
+		count(*)
+		FROM dbsongs where
+		dbsongs.singer_id_one=#{requestParams.singerId} or
+		dbsongs.singer_id_two=#{requestParams.singerId} or
+		dbsongs.singer_id_three=#{requestParams.singerId}
+	</select>
+</mapper>

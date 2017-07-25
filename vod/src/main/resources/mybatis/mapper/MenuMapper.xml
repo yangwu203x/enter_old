@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://www.mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="MenuMapper">
+    
+    <!-- 获取所有的菜单 -->
+    <select id="allMenu" resultType="cn.ogsu.vod.entity.Menu">
+        select id menuNo,menu_name menuName,parent_menu_id parentMenuNo,
+        menu_url menuUrl,menu_icon  menuIcon from dbmenu
+    </select>
+    
+    <!-- 获取分页菜单数据 -->
+    <select id="listPageMenu" resultType="cn.ogsu.vod.entity.Menu" parameterType="page">
+        select id menuNo,menu_name menuName,parent_menu_id parentMenuNo,
+        menu_url menuUrl,menu_icon  menuIcon from dbmenu
+        <where>
+			<if test="pd.menu_name!=null and pd.menu_name!=''">
+				menu_name like '%${pd.menu_name}%'
+			</if>
+        </where>
+    </select>
+    
+    <!-- 获取拥有权限的菜单编号 -->
+    <select id="findPrivilegeMenu" parameterType="string" resultType="string">
+    	select menu_id from dbprivilege where account_id=#{accountNo}
+    </select>
+    
+    <!-- 获取单个菜单数据 -->
+    <select id="findSingleMenu" parameterType="string" resultType="cn.ogsu.vod.entity.Menu">
+    	select id menuNo,menu_name menuName,parent_menu_id parentMenuNo,
+        menu_url menuUrl,menu_icon  menuIcon from dbmenu where id=#{menuNo}
+    </select>
+    
+    <!-- 获取与登陆账户相关的菜单 -->
+    <select id="obtainMenuByAccount" parameterType="string" resultType="cn.ogsu.vod.entity.Menu">
+        select m.id menuNo,m.menu_name menuName,m.menu_url menuUrl,m.menu_icon menuIcon,m.parent_menu_id parentMenuNo
+        from dbmenu m,dbprivilege p where m.id=p.menu_id and p.account_id=#{accountNo}
+    </select>
+    
+    
+    <!-- 增加菜单 -->
+    <insert id="addMenu" parameterType="cn.ogsu.vod.entity.Menu">
+        insert into dbmenu(menu_name,parent_menu_id,menu_url,menu_icon)
+        values(#{menuName},#{parentMenuNo},#{menuUrl},#{menuIcon})
+    </insert>
+    
+    <!-- 修改菜单 -->
+    <update id="updateMenu" parameterType="cn.ogsu.vod.entity.Menu">
+        update dbmenu
+        <set>
+            <if test="menuName!=null and menuName!=''">
+                menu_name=#{menuName},
+            </if>
+             <if test="parentMenuNo!=null and parentMenuNo!=''">
+                 parent_menu_id={parentMenuNo},
+             </if>
+              <if test="menuUrl!=null and menuUrl!=''">
+                 menu_url=#{menuUrl},
+              </if>
+              <if test="menuIcon!=null and menuIcon!=''">
+                  menu_icon=#{menuIcon},
+              </if>
+        </set>
+        where id=#{menuNo}
+    </update>
+    
+    <!-- 检查待删除的菜单是否存在子菜单-->
+    <select id="findSubMenuCount" parameterType="string" resultType="int">
+    	select count(id) from dbmenu where parent_menu_id in
+    	<foreach item="parentMenuNo" index="index" collection="array" open="(" separator="," close=")">
+           #{parentMenuNo}
+		</foreach>
+    </select>
+    <!-- 删除菜单 -->
+    <delete id="delMenu" parameterType="string">
+        delete from dbmenu where id in
+         <foreach item="menuNo" index="index" collection="array" open="(" separator="," close=")">
+           #{menuNo}
+		</foreach>
+    </delete>
+</mapper>

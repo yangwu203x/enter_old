@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD SQL Map Config 3.0//EN"  
+	"http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+
+	<!-- 全局变量 -->
+	<settings>
+		<!-- 启用或禁用缓存；默认为true -->
+		<setting name="cacheEnabled" value="false" />
+		<!-- 允许JDBC支持生成的键；默认为false -->
+		<setting name="useGeneratedKeys" value="true" />
+		<!-- 配置默认的执行器；默认为SIMPLE -->
+		<setting name="defaultExecutorType" value="REUSE" />
+	</settings>
+	
+	<typeAliases>
+		<!-- 这里添加生成的实体类 -->
+		<typeAlias type="cn.ogsu.api.util.PageData" alias="pd"/>
+		<typeAlias type="cn.ogsu.api.requestBean.RequestUserCollect" alias="requestBean"/>
+	</typeAliases>
+</configuration>

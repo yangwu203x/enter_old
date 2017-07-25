@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://www.mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="UserInfoMapper">
+	<!-- 分页获取用户信息 -->
+	<select id="listPageUserInfo" parameterType="page" resultType="pd">
+		select user_id,mac_address,serial_number,user_type,permit_time
+		from dbuser where 1=1
+		<if test="pd.mac_address!=null and pd.mac_address!=''">
+			and mac_address like '%${pd.mac_address}%'
+		</if>
+		<if test="pd.serial_number!=null and pd.serial_number!=''">
+			and serial_number like '%${pd.serial_number}%'
+		</if>
+		<if test="pd.user_type!=null and pd.user_type!=''">
+			and user_type like '%${pd.user_type}%'
+		</if>
+	</select>
+	
+	<!-- 自动补全 -->
+    <select id="autoMacAddress" parameterType="pd" resultType="string">
+        select distinct mac_address  from dbuser
+       		where mac_address like '%${mac_address}%'
+    </select>
+    <!-- 自动补全 -->
+    <select id="autoSerialNumber" parameterType="pd" resultType="string">
+        select serial_number  from dbuser
+       		where serial_number like '%${serial_number}%'
+    </select>
+	
+	<!-- 获取单个用户信息 -->
+	<select id="singleUserInfo" parameterType="string" resultType="pd">
+		select user_id,mac_address,serial_number,user_type,permit_time
+		from dbuser where user_id=#{user_id}
+	</select>
+	<!-- 根据mac和序列号获取编号 -->
+	<select id="obtainUserId" parameterType="pd" resultType="string">
+		select user_id from dbuser where mac_address=#{mac_address} and 
+		serial_number=#{serial_number}
+	</select>
+	
+	<!-- 增加用户信息 -->
+	<insert id="addUserInfo" parameterType="pd">
+		insert into dbuser(mac_address,serial_number,user_type,permit_time)
+		values(#{mac_address},#{serial_number},#{user_type},#{permit_time})
+	</insert>
+	
+	<!-- 修改用户信息 -->
+	<update id="updateUserInfo" parameterType="pd">
+		update dbuser
+		<set>
+			<if test="mac_address!=null and mac_address!=''">
+				mac_address=#{mac_address},
+			</if>
+			<if test="serial_number!=null and serial_number!=''">
+				serial_number=#{serial_number},
+			</if>
+			<if test="user_type!=null and user_type!=''">
+				user_type=#{user_type},
+			</if>
+			<if test="permit_time!=null and permit_time!=''">
+				permit_time=#{permit_time},
+			</if>
+		</set>
+		where user_id=#{user_id}
+	</update>
+	
+	<!-- 删除一个用户信息 -->
+	<delete id="delUsers" parameterType="string">
+		 delete from dbuser where user_id=#{user_id}
+	</delete>
+</mapper>

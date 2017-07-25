@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://www.mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ApkMapper">
+	<!-- 分页获取apk文件信息 -->
+	<select id="listPageApk" parameterType="page"  resultType="pd">
+		select id apkNo,apk_name apkName,apk_version apkVersion from dbapk
+	</select>
+	
+	<!-- 增加apk信息 -->
+	<insert id="addApk" parameterType="pd">
+		insert into dbapk(apk_name,apk_version,apk_path,apk_down_path)
+		values(#{apkName},#{apkVersion},#{apkPath},#{apkDownPath})
+	</insert>
+	
+	<!-- 删除一个或者多个apk信息 -->
+	<delete id="deleteApks" parameterType="string">
+		 delete from dbapk where id in
+        <foreach item="apk_id" index="index" collection="array" open="(" separator="," close=")">
+           #{apk_id}
+		</foreach>
+	</delete>
+</mapper>

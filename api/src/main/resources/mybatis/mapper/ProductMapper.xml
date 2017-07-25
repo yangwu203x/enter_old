@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://www.mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ProductMapper">
+	<!-- 修改系统第一次使用时间 -->
+	<update id="updateFirstTime" parameterType="pd">
+		update dbproduct set first_time=#{firstTime}
+		where user_id=#{userId}
+	</update>
+	
+	<select id="findFirstTime" resultType="java.util.Date" parameterType="pd">
+		select first_time from dbproduct where user_id=#{userId}
+	</select>
+</mapper>

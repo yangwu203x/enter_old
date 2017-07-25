@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://www.mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="NewSongMapper">
+	<!-- 分页获取新歌 -->
+	<select id="listPageNewSongs" parameterType="page" resultType="pd">
+		select s.id newSongId,s.song_name songName,n.id newId from dbnewsong n,dbsongs s
+		where n.new_id=s.id
+		<if test="pd.hotSongId!=null and pd.hotSongId!=''">
+			and s.id like '%${pd.hotSongId}%'
+		</if>
+		<if test="pd.songName!=null and pd.songName!=''">
+			and s.song_name like '%${pd.songName}%'
+		</if>
+	</select>
+	
+	<!-- 获取单手新歌数据 -->
+	<select id="findSingleNewSong" parameterType="string" resultType="pd">
+		select s.id newSongId,s.song_name songName,n.id newId from dbnewsong n,dbsongs s
+		where n.new_id=s.id
+		and n.id=#{newId}
+	</select>
+	
+	<!-- 增加新歌 -->
+	<insert id="addNewSong" parameterType="pd">
+		insert into dbnewsong(new_id)
+		value(#{songId})
+	</insert>
+	
+	<!--删除一首或者多个新歌 -->
+	<delete id="delNewSongs" parameterType="string">
+		delete from dbnewsong where id in
+		<foreach collection="array" item="newId" open="(" close=")" separator=",">
+			#{newId}
+		</foreach>
+	</delete>
+	
+	<update id="updateNewSong" parameterType="pd">
+		update dbnewsong
+		<set>
+			<if test="songId!=null and songId!=''">
+				new_id=#{songId},
+			</if>
+		</set>
+		where id=#{newId}
+	</update>
+</mapper>

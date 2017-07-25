@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://www.mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="SingerMapper">
+
+	<!-- 获取同步歌星的数据 -->
+	<select id="asyncSingers" parameterType="pd" resultType="pd">
+		select id singerId,singer_name singerName,singer_type singerType,
+		singer_pinyin singerPinyin,singer_zs singerZs,singer_ordertimes
+		orderTimes,
+		DATE_FORMAT(singer_version,'%Y-%m-%d') singerVersion,
+		header_path headerPath,song_count songCount
+		from dbsinger
+		<if test="singerVersion!=null and singerVersion!=''">
+			where singer_version>#{singerVersion}
+		</if>
+	</select>
+
+	<select id="asyncSingerTypes" parameterType="pd" resultType="pd">
+		select id typeId,singer_type typeName from dbsingertype
+	</select>
+
+	<!-- 获取热门歌手 -->
+	<select id="findHotSinger" resultType="pd">
+		select id hotId,hot_id
+		hotSingerId,rank from dbhotsinger
+	</select>
+
+	<select id="findSingerName" resultType="pd">
+		select id from dbsinger
+	</select>
+	<update id="initSingerCount" parameterType="pd">
+		update dbsinger SET
+		song_count=(SELECT count(*) FROM dbsongs WHERE FIND_IN_SET((select
+		a.singer_name from (select * from dbsinger) a where
+		id=#{id}),dbsongs.singer_name) OR dbsongs.singer_id_one=#{id} OR
+		dbsongs.singer_id_two=#{id} OR dbsongs.singer_id_three=#{id}) where
+		id=#{id}
+	</update>
+</mapper>
